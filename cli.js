@@ -4,14 +4,20 @@ const chalk     = require('chalk');
 const Nightmare = require('nightmare');
 const prompt    = require('prompt');
 
+var nightmare = Nightmare({
+	executionTimeout: 5000,
+	show: true
+});
 
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 function downloadPayStub(startdate, callback) {
-
-	var downloader = Nightmare( {show: false} )
+	var downloader = Nightmare({
+		executionTimeout: 5000,
+		show: false
+	});
 	downloader
 		.goto('https://www.paycheckrecords.com/login.jsp')
 		.wait(getRandomInt(1000, 2000))
@@ -53,11 +59,9 @@ function searchPaychecks(params) {
 
 	console.log(chalk.blue('Seaching Date Range: '+startdate+' ~ '+enddate));
 
-	var nightmare =  Nightmare( {show: true} )
 	nightmare
 		.goto('https://www.paycheckrecords.com/login.jsp')
-		.wait(getRandomInt(1000, 2000))
-		.wait('#mainBody')
+		.wait('#ius-userid')
 		.evaluate(function() {
 			document.querySelector('input#ius-userid').value = ''
 		})
@@ -89,10 +93,10 @@ function searchPaychecks(params) {
 		.end()
 		.then(function (pages) {
 			for (i = 0; i < pages.length; ++i) {
-				console.log(chalk.red('Downloading PayStub on '+pages[i].name));
+				console.log(chalk.green('Downloading PayStub on '+pages[i].name));
 
 				downloadPayStub(pages[i].name, function() {
-					console.log(chalk.red('Downloaded PayStub on '+pages[i].name));
+					console.log(chalk.green('Downloaded PayStub on '+pages[i].name));
 				});
 			}
 		})
