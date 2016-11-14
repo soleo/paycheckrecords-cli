@@ -9,18 +9,25 @@ var nightmare = Nightmare({
 	show: true
 });
 
-function getRandomInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
 function downloadPayStub(nightmare, startdate) {
+	// Bug from paycheckrecords.com
+	// If start date is any date in 02/01/2014 - 02/28/2014, the result will be empty
+	// Fix: Offset a month for start date
+	var start = Date.parse(startdate),
+		end   = startdate;
+	if(start.getMonth() != 1) {
+		start = (start.getMonth() + 1) + '/' + start.getDate() + '/' + start.getFullYear();
+	}else{
+		start = (start.getMonth() ) + '/' + start.getDate() + '/' + start.getFullYear();
+	}
+
 	nightmare
 		.evaluate(function() {
 			document.querySelector('input#startDate').value = ''
 			document.querySelector('input#endDate').value = ''
 		})
-		.type('#startDate', startdate)
-		.type('#endDate', startdate)
+		.type('#startDate', start)
+		.type('#endDate', end)
 		.click('#updateReportSubmit')
 		.wait(1000) // Wait for ajax to submit
 		.wait('.report')
@@ -78,7 +85,6 @@ function searchPaychecks(params) {
 			});
 			downloader
 				.goto('https://www.paycheckrecords.com/login.jsp')
-				.wait(getRandomInt(1000, 2000))
 				.wait('#ius-userid')
 				.evaluate(function() {
 					document.querySelector('input#ius-userid').value = ''
