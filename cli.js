@@ -4,23 +4,21 @@ const chalk     = require('chalk');
 const Nightmare = require('nightmare');
 const prompt    = require('prompt');
 
+
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function sleepFor( sleepDuration ){
-	var now = new Date().getTime();
-	while(new Date().getTime() < now + sleepDuration){ /* do nothing */ } 
-}
-
-function downloadPayStub(startdate, enddate) {
-	sleepFor(getRandomInt(1000, 3000))
+function downloadPayStub(startdate, callback) {
 
 	var downloader = Nightmare( {show: false} )
 	downloader
 		.goto('https://www.paycheckrecords.com/login.jsp')
 		.wait(getRandomInt(1000, 2000))
-		.wait('#ius-userid')
+		.wait('#mainBody')
+		.evaluate(function() {
+			document.querySelector('input#ius-userid').value = ''
+		})
 		.type('#ius-userid', config.username)
 		.type('#ius-password', config.password)
 		.click('#ius-sign-in-submit-btn')
@@ -37,16 +35,13 @@ function downloadPayStub(startdate, enddate) {
 		.click('.report .tableCell a')
 		.wait('#paystub_form_tbl')
 		.pdf('PayCheck-'+startdate.replace(/\//g, '-') +'.pdf')
-		.evaluate(function () {
-		})
 		.end()
-		.then(function (result) {
-			//console.log(result)
+		.then(function () {
+			callback();
 		})
 		.catch(function (error) {
 			console.error('Search failed:', error);
 		});
-		
 }
 
 function searchPaychecks(params) {
@@ -55,13 +50,17 @@ function searchPaychecks(params) {
 		startdate = (startdate.getMonth() + 1) + '/' + startdate.getDate() + '/' + startdate.getFullYear(),
 		enddate = Date.parse(params.enddate),
 		enddate = (enddate.getMonth() + 1) + '/' + enddate.getDate() + '/' + enddate.getFullYear();
-	
+
 	console.log(chalk.blue('Seaching Date Range: '+startdate+' ~ '+enddate));
-	
-	var nightmare =  Nightmare( {show: false} )
+
+	var nightmare =  Nightmare( {show: true} )
 	nightmare
 		.goto('https://www.paycheckrecords.com/login.jsp')
-		.wait('#ius-userid')
+		.wait(getRandomInt(1000, 2000))
+		.wait('#mainBody')
+		.evaluate(function() {
+			document.querySelector('input#ius-userid').value = ''
+		})
 		.type('#ius-userid', config.username)
 		.type('#ius-password', config.password)
 		.click('#ius-sign-in-submit-btn')
@@ -78,22 +77,23 @@ function searchPaychecks(params) {
 		.evaluate(function () {
 			var links = document.querySelectorAll('.report a'), i;
 			var pages = [];
-			
+
 			for (i = 0; i < links.length; ++i) {
 			  pages.push({
 				'link': links[i].href,
 				'name': links[i].innerText
 			  });
 			}
-			
 			return pages;
 		})
 		.end()
 		.then(function (pages) {
-			console.log(pages)
 			for (i = 0; i < pages.length; ++i) {
-				downloadPayStub(pages[i].name, enddate);
+				console.log(chalk.red('Downloading PayStub on '+pages[i].name));
 
+				downloadPayStub(pages[i].name, function() {
+					console.log(chalk.red('Downloaded PayStub on '+pages[i].name));
+				});
 			}
 		})
 		.catch(function (error) {

@@ -2,10 +2,12 @@
   "name": "paycheckrecords-cli",
   "version": "1.0.0",
   "description": "Exporting Paycheck Records",
-  "main": "index.js",
+  "bin": {
+    "paycheckrecords": "cli.js"
+  },
   "scripts": {
-    "start": "node index.js",
-    "dev": "DEBUG=nightmare node index.js",
+    "start": "node cli.js",
+    "dev": "DEBUG=nightmare node cli.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Xinjiang Shao <shaoxinjiang@gmail.com>",
@@ -15,8 +17,10 @@
   },
   "dependencies": {
     "chalk": "^1.1.3",
+    "cli-spinners": "^0.3.0",
     "datejs": "^1.0.0-rc3",
     "nightmare": "^2.8.1",
+    "promise": "^7.1.1",
     "prompt": "^1.0.0"
   }
 }
