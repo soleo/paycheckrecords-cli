@@ -13,22 +13,8 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function downloadPayStub(startdate, callback) {
-	var downloader = Nightmare({
-		executionTimeout: 5000,
-		show: false
-	});
-	downloader
-		.goto('https://www.paycheckrecords.com/login.jsp')
-		.wait(getRandomInt(1000, 2000))
-		.wait('#mainBody')
-		.evaluate(function() {
-			document.querySelector('input#ius-userid').value = ''
-		})
-		.type('#ius-userid', config.username)
-		.type('#ius-password', config.password)
-		.click('#ius-sign-in-submit-btn')
-		.wait('#startDate')
+function downloadPayStub(nightmare, startdate) {
+	nightmare
 		.evaluate(function() {
 			document.querySelector('input#startDate').value = ''
 			document.querySelector('input#endDate').value = ''
@@ -41,13 +27,7 @@ function downloadPayStub(startdate, callback) {
 		.click('.report .tableCell a')
 		.wait('#paystub_form_tbl')
 		.pdf('PayCheck-'+startdate.replace(/\//g, '-') +'.pdf')
-		.end()
-		.then(function () {
-			callback();
-		})
-		.catch(function (error) {
-			console.error('Search failed:', error);
-		});
+		.back()
 }
 
 function searchPaychecks(params) {
@@ -92,17 +72,36 @@ function searchPaychecks(params) {
 		})
 		.end()
 		.then(function (pages) {
+			var downloader = Nightmare({
+				executionTimeout: 5000,
+				show: true
+			});
+			downloader
+				.goto('https://www.paycheckrecords.com/login.jsp')
+				.wait(getRandomInt(1000, 2000))
+				.wait('#ius-userid')
+				.evaluate(function() {
+					document.querySelector('input#ius-userid').value = ''
+				})
+				.type('#ius-userid', config.username)
+				.type('#ius-password', config.password)
+				.click('#ius-sign-in-submit-btn')
+				.wait('#startDate');
+
 			for (i = 0; i < pages.length; ++i) {
 				console.log(chalk.green('Downloading PayStub on '+pages[i].name));
-
-				downloadPayStub(pages[i].name, function() {
-					console.log(chalk.green('Downloaded PayStub on '+pages[i].name));
-				});
+				downloadPayStub(downloader, pages[i].name);
 			}
-		})
-		.catch(function (error) {
-			console.error('Search failed:', error);
-		});
+
+			downloader
+				.end()
+				.catch(function (error) {
+					console.error('Search failed:', error);
+				});
+			})
+			.catch(function (error) {
+				console.error('Search failed:', error);
+			});
 
 }
 
