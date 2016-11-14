@@ -1,0 +1,6 @@
+exports.username = '';
+exports.password = '';
+exports.defaults = {
+    startdate: '2013-11-01',
+    enddate: 'today'
+};
