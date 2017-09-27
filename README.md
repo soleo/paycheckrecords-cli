@@ -1,5 +1,7 @@
 # Paycheck Records Command Line Tool
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/soleo/paycheckrecords-cli.svg)](https://greenkeeper.io/)
+
 A CLI prompt to quickly exporting pay stubs from paycheckrecords.com.
 
 Inspired By @jmillerdesign's [paycheckrecords](https://github.com/jmillerdesign/paycheckrecords) 
